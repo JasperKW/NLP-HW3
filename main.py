@@ -113,53 +113,24 @@ def create_augmented_dataloader(args, dataset):
     # Here, 'dataset' is the original dataset. You should return a dataloader called 'train_dataloader' -- this
     # dataloader will be for the original training split augmented with 5k random transformed examples from the training set.
     # You may find it helpful to see how the dataloader was created at other place in this code.
-    from torch.utils.data import DataLoader, random_split, ConcatDataset, Dataset
-    from transformers import default_data_collator
+    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
-    # Set seed for reproducibility
-    random.seed(getattr(args, 'seed', 42))
+    # Apply the transform to create augmented data
+    augmented_texts = [transform_function(text) for text in original_data['texts'][:5000]]
 
-    # Make sure to use the 'train' split if available
-    if isinstance(dataset, dict) and 'train' in dataset:
-        train_dataset = dataset['train']
-    else:
-        train_dataset = dataset
+    # Combine original and augmented data
+    combined_texts = original_data['texts'] + augmented_texts
+    combined_labels = original_data['labels'] * 2
 
-    # Split the original dataset into train and validation sets
-    train_size = int(0.8 * len(train_dataset))
-    val_size = len(train_dataset) - train_size
-    train_subset, val_subset = random_split(train_dataset, [train_size, val_size])
+    # Tokenize the combined data
+    encoding = tokenizer(combined_texts, padding=True, truncation=True, return_tensors='pt')
 
-    # Create 5k random transformed examples from the training set
-    num_augmented_examples = min(5000, len(train_subset))
-    augmented_indices = random.sample(range(len(train_subset)), num_augmented_examples)
-    augmented_examples = [train_subset[i] for i in augmented_indices]
+    # Create a dataset
+    dataset = torch.utils.data.TensorDataset(encoding['input_ids'], encoding['attention_mask'], torch.tensor(combined_labels))
 
-    # Apply custom transformation function to create augmented data
-    class AugmentedDataset(Dataset):
-        def __init__(self, examples):
-            self.examples = examples
+    # Create a data loader
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-        def __len__(self):
-            return len(self.examples)
-
-        def __getitem__(self, idx):
-            example = self.examples[idx]
-            transformed_example = custom_transform(example)
-            return transformed_example
-
-    augmented_data = AugmentedDataset(augmented_examples)
-
-    # Combine original training data with the augmented data
-    combined_train_dataset = ConcatDataset([train_subset, augmented_data])
-
-    # Create a DataLoader for the combined training dataset
-    train_dataloader = DataLoader(
-        combined_train_dataset,
-        batch_size=getattr(args, 'batch_size', 32),
-        shuffle=True,
-        collate_fn=default_data_collator
-    )
     ##### YOUR CODE ENDS HERE ######
 
     return train_dataloader
