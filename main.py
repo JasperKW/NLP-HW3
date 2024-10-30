@@ -113,7 +113,7 @@ def create_augmented_dataloader(args, dataset):
     # Here, 'dataset' is the original dataset. You should return a dataloader called 'train_dataloader' -- this
     # dataloader will be for the original training split augmented with 5k random transformed examples from the training set.
     # You may find it helpful to see how the dataloader was created at other place in this code.
-    from torch.utils.data import random_split, ConcatDataset, Dataset
+    from torch.utils.data import DataLoader, random_split, ConcatDataset, Dataset
     from transformers import default_data_collator
 
     # Set seed for reproducibility
