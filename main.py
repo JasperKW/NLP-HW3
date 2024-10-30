@@ -68,9 +68,6 @@ def do_train(args, model, train_dataloader, save_dir="./out"):
     # Remember that pytorch uses gradient accumumlation so you need to use zero_grad (https://pytorch.org/tutorials/recipes/recipes/zeroing_out_gradients.html)
     # You can use progress_bar.update(1) to see the progress during training
     # You can refer to the pytorch tutorial covered in class for reference
-
-    raise NotImplementedError
-
     ##### YOUR CODE ENDS HERE ######
 
     print("Training completed...")
