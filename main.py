@@ -119,15 +119,21 @@ def create_augmented_dataloader(args, dataset):
     # Set seed for reproducibility
     random.seed(getattr(args, 'seed', 42))
 
+    # Make sure to use the 'train' split if available
+    if isinstance(dataset, dict) and 'train' in dataset:
+        train_dataset = dataset['train']
+    else:
+        train_dataset = dataset
+
     # Split the original dataset into train and validation sets
-    train_size = int(0.8 * len(dataset))
-    val_size = len(dataset) - train_size
-    train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+    train_size = int(0.8 * len(train_dataset))
+    val_size = len(train_dataset) - train_size
+    train_subset, val_subset = random_split(train_dataset, [train_size, val_size])
 
     # Create 5k random transformed examples from the training set
-    num_augmented_examples = min(5000, len(train_dataset))
-    augmented_indices = random.sample(range(len(train_dataset)), num_augmented_examples)
-    augmented_examples = [train_dataset[i] for i in augmented_indices]
+    num_augmented_examples = min(5000, len(train_subset))
+    augmented_indices = random.sample(range(len(train_subset)), num_augmented_examples)
+    augmented_examples = [train_subset[i] for i in augmented_indices]
 
     # Apply custom transformation function to create augmented data
     class AugmentedDataset(Dataset):
@@ -143,7 +149,7 @@ def create_augmented_dataloader(args, dataset):
     augmented_data = AugmentedDataset(augmented_examples)
 
     # Combine original training data with the augmented data
-    combined_train_dataset = ConcatDataset([train_dataset, augmented_data])
+    combined_train_dataset = ConcatDataset([train_subset, augmented_data])
 
     # Create a DataLoader for the combined training dataset
     train_dataloader = DataLoader(
