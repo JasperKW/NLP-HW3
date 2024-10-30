@@ -43,9 +43,29 @@ def custom_transform(example):
     # how you could implement two of them --- synonym replacement and typos.
 
     # You should update example["text"] using your transformation
+    text = example["text"]  # Assuming each example has a "text" field
+    typo_probability = 0.1  # 10% probability to introduce a typo
 
-    raise NotImplementedError
+    # Simulate typos by replacing characters with adjacent keys on the QWERTY keyboard
+    qwerty_neighbors = {
+        'a': ['s', 'q', 'z'], 'b': ['v', 'n', 'g'], 'c': ['x', 'v'], 'd': ['s', 'f', 'e'],
+        'e': ['w', 'r', 'd'], 'f': ['d', 'g', 'r'], 'g': ['f', 'h', 't'], 'h': ['g', 'j', 'y'],
+        'i': ['u', 'o', 'k'], 'j': ['h', 'k', 'u'], 'k': ['j', 'l', 'i'], 'l': ['k', 'o'],
+        'm': ['n', 'j'], 'n': ['b', 'm', 'h'], 'o': ['i', 'p', 'l'], 'p': ['o', 'l'],
+        'q': ['w', 'a'], 'r': ['e', 't', 'f'], 's': ['a', 'd', 'w'], 't': ['r', 'y', 'g'],
+        'u': ['y', 'i', 'j'], 'v': ['c', 'b'], 'w': ['q', 'e', 's'], 'x': ['z', 'c'],
+        'y': ['t', 'u', 'h'], 'z': ['x', 'a']
+    }
 
+    new_text = []
+    for char in text:
+        if char in qwerty_neighbors and random.random() < typo_probability:
+            new_text.append(random.choice(qwerty_neighbors[char]))
+        else:
+            new_text.append(char)
+
+    example["text"] = ''.join(new_text)
+    
     ##### YOUR CODE ENDS HERE ######
 
     return example
