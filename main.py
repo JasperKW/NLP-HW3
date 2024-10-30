@@ -113,9 +113,39 @@ def create_augmented_dataloader(args, dataset):
     # Here, 'dataset' is the original dataset. You should return a dataloader called 'train_dataloader' -- this
     # dataloader will be for the original training split augmented with 5k random transformed examples from the training set.
     # You may find it helpful to see how the dataloader was created at other place in this code.
+    from torch.utils.data import DataLoader, random_split
+    from transformers import default_data_collator
+    import random
 
-    raise NotImplementedError
+    # Set seed for reproducibility
+    random.seed(args.seed)
 
+    # Split the original dataset into train and validation sets
+    train_size = int(0.8 * len(dataset))
+    val_size = len(dataset) - train_size
+    train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+
+    # Create 5k random transformed examples from the training set
+    num_augmented_examples = 5000
+    augmented_indices = random.sample(range(len(train_dataset)), num_augmented_examples)
+    augmented_examples = [train_dataset[i] for i in augmented_indices]
+
+    # Apply custom transformation function to create augmented data
+    augmented_data = []
+    for example in augmented_examples:
+        transformed_example = custom_transform(example)  # Assuming custom_transform is already implemented
+        augmented_data.append(transformed_example)
+
+    # Combine original training data with the augmented data
+    combined_train_dataset = train_dataset + augmented_data
+
+    # Create a DataLoader for the combined training dataset
+    train_dataloader = DataLoader(
+        combined_train_dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        collate_fn=default_data_collator
+    )
     ##### YOUR CODE ENDS HERE ######
 
     return train_dataloader
