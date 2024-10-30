@@ -144,7 +144,10 @@ def create_augmented_dataloader(args, dataset):
             return len(self.examples)
 
         def __getitem__(self, idx):
-            return custom_transform(self.examples[idx])
+            example = self.examples[idx]
+            if isinstance(example, dict) and 'input_ids' in example:
+                example['input_ids'] = custom_transform(example['input_ids'])
+            return example
 
     augmented_data = AugmentedDataset(augmented_examples)
 
