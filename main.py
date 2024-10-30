@@ -28,6 +28,8 @@ def tokenize_function(examples):
 
 # Core training function
 def do_train(args, model, train_dataloader, save_dir="./out"):
+    ################################
+    ##### YOUR CODE BEGINGS HERE ###
     optimizer = AdamW(model.parameters(), lr=args.learning_rate)
     num_epochs = args.num_epochs
     num_training_steps = num_epochs * len(train_dataloader)
@@ -37,9 +39,29 @@ def do_train(args, model, train_dataloader, save_dir="./out"):
     model.train()
     progress_bar = tqdm(range(num_training_steps))
 
-    ################################
-    ##### YOUR CODE BEGINGS HERE ###
+    for epoch in range(num_epochs):
+        for batch in train_dataloader:
+            # Move batch to the device
+            batch = {k: v.to(args.device) for k, v in batch.items()}
 
+            # Forward pass
+            outputs = model(**batch)
+            loss = outputs.loss
+
+            # Backward pass
+            loss.backward()
+
+            # Optimizer step
+            optimizer.step()
+
+            # Learning rate scheduler step
+            lr_scheduler.step()
+
+            # Zero out gradients for the next iteration
+            optimizer.zero_grad()
+
+            # Update progress bar
+            progress_bar.update(1)
     # Implement the training loop --- make sure to use the optimizer and lr_sceduler (learning rate scheduler)
     # Remember that pytorch uses gradient accumumlation so you need to use zero_grad (https://pytorch.org/tutorials/recipes/recipes/zeroing_out_gradients.html)
     # You can use progress_bar.update(1) to see the progress during training
