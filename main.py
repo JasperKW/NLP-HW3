@@ -113,7 +113,7 @@ def create_augmented_dataloader(args, dataset):
     # Here, 'dataset' is the original dataset. You should return a dataloader called 'train_dataloader' -- this
     # dataloader will be for the original training split augmented with 5k random transformed examples from the training set.
     # You may find it helpful to see how the dataloader was created at other place in this code.
-    from torch.utils.data import random_split, ConcatDataset
+    from torch.utils.data import random_split, ConcatDataset, Dataset
     from transformers import default_data_collator
 
     # Set seed for reproducibility
@@ -130,10 +130,17 @@ def create_augmented_dataloader(args, dataset):
     augmented_examples = [train_dataset[i] for i in augmented_indices]
 
     # Apply custom transformation function to create augmented data
-    augmented_data = []
-    for example in augmented_examples:
-        transformed_example = custom_transform(example)  # Assuming custom_transform is already implemented
-        augmented_data.append(transformed_example)
+    class AugmentedDataset(Dataset):
+        def __init__(self, examples):
+            self.examples = examples
+
+        def __len__(self):
+            return len(self.examples)
+
+        def __getitem__(self, idx):
+            return custom_transform(self.examples[idx])
+
+    augmented_data = AugmentedDataset(augmented_examples)
 
     # Combine original training data with the augmented data
     combined_train_dataset = ConcatDataset([train_dataset, augmented_data])
