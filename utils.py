@@ -42,30 +42,18 @@ def custom_transform(example):
     # You are free to implement any transformation but the comments at the top roughly describe
     # how you could implement two of them --- synonym replacement and typos.
 
-    # You should update example["text"] using your transformation
-    text = example["text"]  # Assuming each example has a "text" field
+    # Example transformation: introduce typos
+    text = example  # Assuming each example is a list of input IDs
     typo_probability = 0.1  # 10% probability to introduce a typo
 
-    # Simulate typos by replacing characters with adjacent keys on the QWERTY keyboard
-    qwerty_neighbors = {
-        'a': ['s', 'q', 'z'], 'b': ['v', 'n', 'g'], 'c': ['x', 'v'], 'd': ['s', 'f', 'e'],
-        'e': ['w', 'r', 'd'], 'f': ['d', 'g', 'r'], 'g': ['f', 'h', 't'], 'h': ['g', 'j', 'y'],
-        'i': ['u', 'o', 'k'], 'j': ['h', 'k', 'u'], 'k': ['j', 'l', 'i'], 'l': ['k', 'o'],
-        'm': ['n', 'j'], 'n': ['b', 'm', 'h'], 'o': ['i', 'p', 'l'], 'p': ['o', 'l'],
-        'q': ['w', 'a'], 'r': ['e', 't', 'f'], 's': ['a', 'd', 'w'], 't': ['r', 'y', 'g'],
-        'u': ['y', 'i', 'j'], 'v': ['c', 'b'], 'w': ['q', 'e', 's'], 'x': ['z', 'c'],
-        'y': ['t', 'u', 'h'], 'z': ['x', 'a']
-    }
-
+    # Simulate typos in tokens
     new_text = []
-    for char in text:
-        if char in qwerty_neighbors and random.random() < typo_probability:
-            new_text.append(random.choice(qwerty_neighbors[char]))
+    for token in text:
+        if random.random() < typo_probability:
+            new_text.append(random.randint(0, 30522))  # Assuming a BERT tokenizer with 30522 tokens
         else:
-            new_text.append(char)
+            new_text.append(token)
 
-    example["text"] = ''.join(new_text)
-    
     ##### YOUR CODE ENDS HERE ######
 
     return example
