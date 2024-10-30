@@ -117,7 +117,7 @@ def create_augmented_dataloader(args, dataset):
     from transformers import default_data_collator
 
     # Set seed for reproducibility
-    random.seed(args.seed)
+    random.seed(getattr(args, 'seed', 42))
 
     # Split the original dataset into train and validation sets
     train_size = int(0.8 * len(dataset))
@@ -148,7 +148,7 @@ def create_augmented_dataloader(args, dataset):
     # Create a DataLoader for the combined training dataset
     train_dataloader = DataLoader(
         combined_train_dataset,
-        batch_size=args.batch_size,
+        batch_size=getattr(args, 'batch_size', 32),
         shuffle=True,
         collate_fn=default_data_collator
     )
