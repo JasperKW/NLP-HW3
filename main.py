@@ -30,6 +30,7 @@ def tokenize_function(examples):
 def do_train(args, model, train_dataloader, save_dir="./out"):
     ################################
     ##### YOUR CODE BEGINGS HERE ###
+    args.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     optimizer = AdamW(model.parameters(), lr=args.learning_rate)
     num_epochs = args.num_epochs
     num_training_steps = num_epochs * len(train_dataloader)
@@ -38,6 +39,7 @@ def do_train(args, model, train_dataloader, save_dir="./out"):
     )
     model.train()
     progress_bar = tqdm(range(num_training_steps))
+    model.to(args.device)
 
     for epoch in range(num_epochs):
         for batch in train_dataloader:
