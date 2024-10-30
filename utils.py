@@ -43,16 +43,32 @@ def custom_transform(example):
     # how you could implement two of them --- synonym replacement and typos.
 
     # Example transformation: introduce typos
-    text = example  # Assuming each example is a list of input IDs
-    typo_probability = 0.1  # 10% probability to introduce a typo
+    if "input_ids" in example:
+        input_ids = example["input_ids"]
+        typo_probability = 0.1  # 10% probability to introduce a typo
 
-    # Simulate typos in tokens
-    new_text = []
-    for token in text:
-        if random.random() < typo_probability:
-            new_text.append(random.randint(0, 30522))  # Assuming a BERT tokenizer with 30522 tokens
-        else:
-            new_text.append(token)
+        # Simulate typos by replacing characters with adjacent keys on the QWERTY keyboard
+        qwerty_neighbors = {
+            'a': ['s', 'q', 'z'], 'b': ['v', 'n', 'g'], 'c': ['x', 'v'], 'd': ['s', 'f', 'e'],
+            'e': ['w', 'r', 'd'], 'f': ['d', 'g', 'r'], 'g': ['f', 'h', 't'], 'h': ['g', 'j', 'y'],
+            'i': ['u', 'o', 'k'], 'j': ['h', 'k', 'u'], 'k': ['j', 'l', 'i'], 'l': ['k', 'o'],
+            'm': ['n', 'j'], 'n': ['b', 'm', 'h'], 'o': ['i', 'p', 'l'], 'p': ['o', 'l'],
+            'q': ['w', 'a'], 'r': ['e', 't', 'f'], 's': ['a', 'd', 'w'], 't': ['r', 'y', 'g'],
+            'u': ['y', 'i', 'j'], 'v': ['c', 'b'], 'w': ['q', 'e', 's'], 'x': ['z', 'c'],
+            'y': ['t', 'u', 'h'], 'z': ['x', 'a']
+        }
+
+        new_input_ids = []
+        for token in input_ids:
+            # Here, you should ideally decode the token back to text, apply transformation, then re-tokenize
+            # For demonstration, assuming tokens are single characters (simplification)
+            if chr(token) in qwerty_neighbors and random.random() < typo_probability:
+                new_token = ord(random.choice(qwerty_neighbors[chr(token)]))
+                new_input_ids.append(new_token)
+            else:
+                new_input_ids.append(token)
+
+        example["input_ids"] = new_input_ids
 
     ##### YOUR CODE ENDS HERE ######
 
