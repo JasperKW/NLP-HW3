@@ -107,7 +107,7 @@ def do_eval(eval_dataloader, output_dir, out_file):
 
 
 # Created a dataladoer for the augmented training dataset
-def create_augmented_dataloader(args, dataset):
+def create_augmented_dataloader(args, dataset, batch_size=16):
     ################################
     ##### YOUR CODE BEGINGS HERE ###
 
