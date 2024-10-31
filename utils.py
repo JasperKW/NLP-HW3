@@ -11,6 +11,7 @@ import evaluate
 import random
 import argparse
 from nltk.corpus import wordnet
+import string
 from nltk import word_tokenize
 from nltk.tokenize.treebank import TreebankWordDetokenizer
 
