@@ -116,13 +116,17 @@ def create_augmented_dataloader(args, dataset):
     # You may find it helpful to see how the dataloader was created at other place in this code.
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
-    # Assume `dataset` contains `texts` and `labels` keys
-    original_texts = dataset['texts']
-    original_labels = dataset['labels']
+    # Extract texts and labels from dataset
+    available_keys = list(dataset.features.keys())
+    text_key = 'text' if 'text' in available_keys else available_keys[0]
+    label_key = 'label' if 'label' in available_keys else available_keys[-1]
 
-    # Apply the transform to create augmented data
-    # Assuming args has a 'transform_function' attribute pointing to the transformation function
-    augmented_texts = [args.transform_function(text) for text in original_texts[:5000]]
+    original_texts = dataset[text_key]
+    original_labels = dataset[label_key]
+
+    # Apply the custom transformation to create augmented data
+    augmented_examples = [custom_transform({'text': text}) for text in original_texts[:5000]]
+    augmented_texts = [example['text'] for example in augmented_examples]
 
     # Combine original and augmented data
     combined_texts = original_texts + augmented_texts
