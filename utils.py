@@ -43,11 +43,40 @@ def custom_transform(example):
     # how you could implement two of them --- synonym replacement and typos.
 
     # Example transformation: introduce typos
+    text = example['text']
     words = text.split()
-    if len(words) > 2:
-        idx = random.randint(0, len(words) - 1)
-        words[idx] = "movie" if words[idx] == "film" else words[idx]  # Simple synonym replacement example
-    return " ".join(words)
+
+    # Synonym Replacement (50% chance for each word)
+    for i in range(len(words)):
+        if random.random() < 0.5:  # 50% chance to replace the word
+            synonyms = wordnet.synsets(words[i])
+            if synonyms:
+                lemmas = synonyms[0].lemmas()
+                if lemmas:
+                    words[i] = lemmas[0].name().replace('_', ' ')
+
+    # Introduce Typos (5% chance for each character)
+    def introduce_typo(word):
+        typo_idx = random.randint(0, len(word) - 1)
+        if word[typo_idx] in string.ascii_letters:
+            # Replace with a random nearby key (e.g., QWERTY typo)
+            nearby_chars = {
+                'a': 'qwsz', 'b': 'vghn', 'c': 'xdfv', 'd': 'ersfx', 'e': 'wsdr', 'f': 'rtgv', 'g': 'tyhb',
+                'h': 'yujnb', 'i': 'ujko', 'j': 'uikmnh', 'k': 'ijol', 'l': 'kop', 'm': 'njk',
+                'n': 'bhjm', 'o': 'iklp', 'p': 'ol', 'q': 'wa', 'r': 'edf', 's': 'wedxa', 't': 'rfgy',
+                'u': 'yhji', 'v': 'cfgb', 'w': 'qase', 'x': 'zsdc', 'y': 'tghu', 'z': 'asx'
+            }
+            if word[typo_idx].lower() in nearby_chars:
+                possible_replacements = nearby_chars[word[typo_idx].lower()]
+                typo_char = random.choice(possible_replacements)
+                word = word[:typo_idx] + typo_char + word[typo_idx + 1:]
+        return word
+
+    transformed_words = [introduce_typo(word) if random.random() < 0.05 else word for word in words]
+    transformed_text = " ".join(transformed_words)
+
+    # Update example with transformed text
+    example['text'] = transformed_text
 
     ##### YOUR CODE ENDS HERE ######
 
