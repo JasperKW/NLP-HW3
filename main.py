@@ -114,15 +114,19 @@ def create_augmented_dataloader(args, dataset):
     # Here, 'dataset' is the original dataset. You should return a dataloader called 'train_dataloader' -- this
     # dataloader will be for the original training split augmented with 5k random transformed examples from the training set.
     # You may find it helpful to see how the dataloader was created at other place in this code.
+    train_data = dataset['train']  # You can change this based on which split you want to use
+
+    # Determine the text and label keys based on available columns
+    available_keys = train_data.column_names
+    text_key = 'text' if 'text' in available_keys else available_keys[0]  # Assuming first key is the text if not 'text'
+    label_key = 'label' if 'label' in available_keys else available_keys[-1]  # Assuming last key is the label if not 'label'
+
+    # Extract texts and labels
+    original_texts = train_data[text_key]
+    original_labels = train_data[label_key]
+
+    # Instantiate tokenizer
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-
-    # Extract texts and labels from dataset
-    available_keys = list(dataset.features.keys())
-    text_key = 'text' if 'text' in available_keys else available_keys[0]
-    label_key = 'label' if 'label' in available_keys else available_keys[-1]
-
-    original_texts = dataset[text_key]
-    original_labels = dataset[label_key]
 
     # Apply the custom transformation to create augmented data
     augmented_examples = [custom_transform({'text': text}) for text in original_texts[:5000]]
