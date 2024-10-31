@@ -116,22 +116,30 @@ def create_augmented_dataloader(args, dataset):
     # You may find it helpful to see how the dataloader was created at other place in this code.
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
+    # Assume `dataset` contains `texts` and `labels` keys
+    original_texts = dataset['texts']
+    original_labels = dataset['labels']
+
     # Apply the transform to create augmented data
-    augmented_texts = [transform_function(text) for text in original_data['texts'][:5000]]
+    # Assuming args has a 'transform_function' attribute pointing to the transformation function
+    augmented_texts = [args.transform_function(text) for text in original_texts[:5000]]
 
     # Combine original and augmented data
-    combined_texts = original_data['texts'] + augmented_texts
-    combined_labels = original_data['labels'] * 2
+    combined_texts = original_texts + augmented_texts
+    combined_labels = original_labels + original_labels[:5000]
 
     # Tokenize the combined data
     encoding = tokenizer(combined_texts, padding=True, truncation=True, return_tensors='pt')
 
     # Create a dataset
-    dataset = torch.utils.data.TensorDataset(encoding['input_ids'], encoding['attention_mask'], torch.tensor(combined_labels))
+    input_ids = encoding['input_ids']
+    attention_mask = encoding['attention_mask']
+    labels = torch.tensor(combined_labels)
+
+    dataset = torch.utils.data.TensorDataset(input_ids, attention_mask, labels)
 
     # Create a data loader
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
     ##### YOUR CODE ENDS HERE ######
 
     return train_dataloader
