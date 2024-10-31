@@ -108,49 +108,31 @@ def do_eval(eval_dataloader, output_dir, out_file):
 
 # Created a dataladoer for the augmented training dataset
 def create_augmented_dataloader(args, dataset, batch_size=16):
-    ################################
-    ##### YOUR CODE BEGINGS HERE ###
+    # Step 1: Select 5,000 random examples from the original training set
+    original_train_dataset = dataset["train"].shuffle(seed=42).select(range(5000))
 
-    # Here, 'dataset' is the original dataset. You should return a dataloader called 'train_dataloader' -- this
-    # dataloader will be for the original training split augmented with 5k random transformed examples from the training set.
-    # You may find it helpful to see how the dataloader was created at other place in this code.
-    train_data = dataset['train']  # You can change this based on which split you want to use
+    # Step 2: Apply custom transformations to create augmented examples
+    augmented_dataset = original_train_dataset.map(custom_transform, load_from_cache_file=False)
 
-    # Determine the text and label keys based on available columns
-    available_keys = train_data.column_names
-    text_key = 'text' if 'text' in available_keys else available_keys[0]  # Assuming first key is the text if not 'text'
-    label_key = 'label' if 'label' in available_keys else available_keys[-1]  # Assuming last key is the label if not 'label'
+    # Ensure column names are consistent between original and augmented datasets
+    if "label" in augmented_dataset.column_names:
+        augmented_dataset = augmented_dataset.rename_column("label", "labels")
+    if "label" in dataset["train"].column_names:
+        dataset["train"] = dataset["train"].rename_column("label", "labels")
 
-    # Extract texts and labels
-    original_texts = train_data[text_key]
-    original_labels = train_data[label_key]
+    # Step 3: Concatenate the augmented examples with the full original training dataset
+    combined_dataset = datasets.concatenate_datasets([dataset["train"], augmented_dataset])
 
-    # Instantiate tokenizer
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+    # Step 4: Tokenize combined dataset
+    combined_tokenized = combined_dataset.map(tokenize_function, batched=True, load_from_cache_file=False)
+    combined_tokenized = combined_tokenized.remove_columns(["text"])
+    combined_tokenized.set_format("torch")
 
-    # Apply the custom transformation to create augmented data
-    augmented_examples = [custom_transform({'text': text}) for text in original_texts[:5000]]
-    augmented_texts = [example['text'] for example in augmented_examples]
-
-    # Combine original and augmented data
-    combined_texts = original_texts + augmented_texts
-    combined_labels = original_labels + original_labels[:5000]
-
-    # Tokenize the combined data
-    encoding = tokenizer(combined_texts, padding=True, truncation=True, return_tensors='pt')
-
-    # Create a dataset
-    input_ids = encoding['input_ids']
-    attention_mask = encoding['attention_mask']
-    labels = torch.tensor(combined_labels)
-
-    dataset = torch.utils.data.TensorDataset(input_ids, attention_mask, labels)
-
-    # Create a data loader
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    ##### YOUR CODE ENDS HERE ######
+    # Step 5: Create DataLoader
+    train_dataloader = DataLoader(combined_tokenized, batch_size=batch_size, shuffle=True)
 
     return train_dataloader
+
 
 
 # Create a dataloader for the transformed test set
@@ -267,3 +249,4 @@ if __name__ == "__main__":
         eval_transformed_dataloader = create_transformed_dataloader(args, dataset, args.debug_transformation)
         score = do_eval(eval_transformed_dataloader, args.model_dir, out_file)
         print("Score: ", score)
+
